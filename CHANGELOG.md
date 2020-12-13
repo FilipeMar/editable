@@ -73,3 +73,7 @@
 * New feature: Use GlobalKey State to get edited row data
 * New feature: Use GlobalKey State to create new row
 * This enable creating row and saving edited rows anywhere outside the Editable widget
+
+## [1.2.0] - 13/11/2020.
+
+* New feature: Allows for editable column names.

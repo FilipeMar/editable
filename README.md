@@ -41,7 +41,7 @@ dependency:
 ```yaml
 dependencies:
   ...
-  editable: "^1.1.3"
+  editable: "^1.2.0"
 ```
 
 In your library add the following import:
