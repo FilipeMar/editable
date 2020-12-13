@@ -3,7 +3,7 @@
 ⚡️A highly customizable, editable table package for Flutter projects.
 
 ### Specs
-[![pub](https://img.shields.io/pub/v/editable.svg?style=flat)](https://pub.dev/packages/editable)
+[Original Package:][![pub](https://img.shields.io/pub/v/editable.svg?style=flat)](https://pub.dev/packages/editable)
 
 This package allows you to create editable tables and spreadsheets with ease, either by providing inital row and column count
 to display an empty table, or use it with predefined rows and column data sets.
