@@ -123,7 +123,11 @@ class _MyHomePageState extends State<MyHomePage> {
         showSaveIcon: true,
         saveIconColor: Colors.black,
         showCreateButton: true,
-        tdStyle: TextStyle(fontSize:20),
+        //tdStyle: TextStyle(fontSize:20),
+        editableColumnNames: true,
+        onColumnSaved: (value) {
+          print(value);
+        },
       ),
     );
   }

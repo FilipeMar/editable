@@ -10,13 +10,22 @@ import 'commons/helpers.dart';
 import 'widgets/table_body.dart';
 import 'widgets/table_header.dart';
 
+//TODO: Known ISSUE :: Initial Column array: same column names result in output of the last column with that name, ignoring earlier columns.
+//TODO: Known ISSUE :: When column names are editable : Same Column Names result in output of saved rows with only the last changed value in last changed column, ignoring other columns.
+//TODO: Known ISSUE :: If no functions are given, it throws an error when the save button is pressed.
+//TODO: add a validator to input in editable text fields.
+//TODO: Must check that headers have unique keys: different keys in the list. Or else it silently omits data when saving rows.
+//TODO: Must check that functions are given for the intendend actions.
+
 class Editable extends StatefulWidget {
-  /// Builds an editable table using predefined row and column counts
-  /// Or using a row and header data set provided
+  /// Builds an editable table using predefined number of rows and columns,
+  /// or using data provided for the body and header of the table.
   ///
-  /// if no data is provided for [row] and [column],
-  /// [rowCount] and [columnCount] properties must be set
-  /// this will generate an empty table
+  /// If no data is provided for [row] and [column],
+  /// [rowCount] and [columnCount] properties must be set, so the widget
+  /// will generate an empty table with a pre-set size.
+  ///
+  /// the column names can be editable by setting [editableColumnNames] to [true].
   ///
   /// it is useful for rendering data from an API or to create a spreadsheet-like
   /// data table
@@ -36,7 +45,8 @@ class Editable extends StatefulWidget {
   ///               showSaveIcon: false,
   ///               borderColor: Colors.lightBlue,
   ///               columnCount: 4,
-  ///               rowCount: 8
+  ///               rowCount: 8,
+  ///               editableColumnNames: true,
   ///              ),
   ///           ).
   ///         ]
@@ -44,48 +54,51 @@ class Editable extends StatefulWidget {
   ///   );
   /// }
   /// ```
-  Editable(
-      {Key key,
-      this.columns,
-      this.rows,
-      this.columnRatio = 0.20,
-      this.onSubmitted,
-      this.onRowSaved,
-      this.columnCount = 0,
-      this.rowCount = 0,
-      this.borderColor = Colors.grey,
-      this.tdPaddingLeft = 8.0,
-      this.tdPaddingTop = 0.0,
-      this.tdPaddingRight = 0.0,
-      this.tdPaddingBottom = 10.0,
-      this.thPaddingLeft = 10.0,
-      this.thPaddingTop = 0.0,
-      this.thPaddingRight = 0.0,
-      this.thPaddingBottom = 0.0,
-      this.trHeight = 50.0,
-      this.borderWidth = 0.5,
-      this.thWeight = FontWeight.w600,
-      this.thSize = 18,
-      this.showSaveIcon = false,
-      this.saveIcon = Icons.save,
-      this.saveIconColor = Colors.black12,
-      this.saveIconSize = 18,
-      this.tdAlignment = TextAlign.start,
-      this.tdStyle,
-      this.showCreateButton = false,
-      this.createButtonAlign = CrossAxisAlignment.start,
-      this.createButtonIcon,
-      this.createButtonColor,
-      this.createButtonShape,
-      this.createButtonLabel,
-      this.stripeColor1 = Colors.white,
-      this.stripeColor2 = Colors.black12,
-      this.zebraStripe = false})
-      : super(key: key);
+  Editable({
+    Key key,
+    this.columns,
+    this.rows,
+    this.columnRatio = 0.20,
+    this.onSubmitted,
+    this.onRowSaved,
+    this.columnCount = 0,
+    this.rowCount = 0,
+    this.borderColor = Colors.grey,
+    this.tdPaddingLeft = 8.0,
+    this.tdPaddingTop = 0.0,
+    this.tdPaddingRight = 0.0,
+    this.tdPaddingBottom = 10.0,
+    this.thPaddingLeft = 10.0,
+    this.thPaddingTop = 0.0,
+    this.thPaddingRight = 0.0,
+    this.thPaddingBottom = 0.0,
+    this.trHeight = 50.0,
+    this.borderWidth = 0.5,
+    this.thWeight = FontWeight.w600,
+    this.thSize = 18,
+    this.showSaveIcon = false,
+    this.saveIcon = Icons.save,
+    this.saveIconColor = Colors.black12,
+    this.saveIconSize = 18,
+    this.tdAlignment = TextAlign.start,
+    this.tdStyle,
+    this.showCreateButton = false,
+    this.createButtonAlign = CrossAxisAlignment.start,
+    this.createButtonIcon,
+    this.createButtonColor,
+    this.createButtonShape,
+    this.createButtonLabel,
+    this.stripeColor1 = Colors.white,
+    this.stripeColor2 = Colors.black12,
+    this.zebraStripe = false,
+    this.editableColumnNames = false,
+    this.onSubmitted_col,
+    this.onColumnSaved,
+  }) : super(key: key);
 
   /// A data set to create headers
   ///
-  /// Can be null if blank columns are needed, else:
+  /// Can be null if blank columns are needed, else can be set as an editable by defining [editableColumnNames] as true and can be given values as an array of objects:
   /// Must be array of objects
   /// with the following keys: [title], [widthFactor] and [key]
   ///
@@ -241,6 +254,9 @@ class Editable extends StatefulWidget {
   /// if enabled, you can style the colors [stripeColor1] and [stripeColor2]
   final bool zebraStripe;
 
+  /// enable editable header
+  final bool editableColumnNames;
+
   ///[onSubmitted] callback is triggered when the enter button is pressed on a table data cell
   /// it returns a value of the cell data
   final ValueChanged<String> onSubmitted;
@@ -248,6 +264,15 @@ class Editable extends StatefulWidget {
   /// [onRowSaved] callback is triggered when a [saveButton] is pressed.
   /// returns only values if row is edited, otherwise returns a string ['no edit']
   final ValueChanged<dynamic> onRowSaved;
+
+  ///[onSubmitted_col] callback is triggered when the enter button is pressed on a table column cell
+  /// it returns a value of the cell data
+  final ValueChanged<String> onSubmitted_col;
+
+  /// [onColumnSaved] callback is triggered when a [saveButton] is pressed.
+  /// returns only values if column name is edited, otherwise returns a string ['no edit']
+  final ValueChanged<dynamic>
+      onColumnSaved; //TODO: apply saving of column names
 
   @override
   EditableState createState() => EditableState(
@@ -259,18 +284,24 @@ class Editable extends StatefulWidget {
 
 class EditableState extends State<Editable> {
   List rows, columns;
-  int columnCount;
-  int rowCount;
+  int columnCount, rowCount;
+
+  EditableState({this.rows, this.columns, this.columnCount, this.rowCount});
 
   ///Get all edited rows
   List get editedRows => _editedRows;
 
+  ///Get all edited columns
+  List get editedHeader => _editedHeader;
+
   ///Create a row after the last row
   createRow() => addOneRow(columns, rows);
-  EditableState({this.rows, this.columns, this.columnCount, this.rowCount});
 
   /// Temporarily holds all edited rows
   List _editedRows = [];
+
+  /// Temporarily holds all edited column names
+  List _editedHeader = [];
 
   @override
   Widget build(BuildContext context) {
@@ -300,8 +331,14 @@ class EditableState extends State<Editable> {
                   (element) => element['row'] == index ? true : false);
               if (rowIndex != -1) {
                 widget.onRowSaved(editedRows[rowIndex]);
+                if (widget.editableColumnNames) {
+                  editedHeader.isNotEmpty ? widget.onColumnSaved(editedHeader) : widget.onColumnSaved('no edit');
+                }
               } else {
                 widget.onRowSaved('no edit');
+                if (widget.editableColumnNames) {
+                  editedHeader.isNotEmpty ? widget.onColumnSaved(editedHeader) : widget.onColumnSaved('no edit');
+                }
               }
             },
           ),
@@ -315,18 +352,71 @@ class EditableState extends State<Editable> {
         return columnCount + 1 == (index + 1)
             ? iconColumn(widget.showSaveIcon, widget.thPaddingTop,
                 widget.thPaddingBottom)
-            : THeader(
-                widthRatio: columns[index]['widthFactor'] != null
-                    ? columns[index]['widthFactor'].toDouble()
-                    : widget.columnRatio,
-                thPaddingLeft: widget.thPaddingLeft,
-                thPaddingTop: widget.thPaddingTop,
-                thPaddingBottom: widget.thPaddingBottom,
-                thPaddingRight: widget.thPaddingRight,
-                headers: columns,
-                thWeight: widget.thWeight,
-                thSize: widget.thSize,
-                index: index);
+            : widget.editableColumnNames //Chooses the appropriate widget for the column titles: editable or not:
+                ? THeader_editable(
+                    widthRatio: columns[index]['widthFactor'] != null
+                        ? columns[index]['widthFactor'].toDouble()
+                        : widget.columnRatio,
+                    thPaddingLeft: widget.thPaddingLeft,
+                    thPaddingTop: widget.thPaddingTop,
+                    thPaddingBottom: widget.thPaddingBottom,
+                    thPaddingRight: widget.thPaddingRight,
+                    headers: columns,
+                    thWeight: widget.thWeight,
+                    thSize: widget.thSize,
+                    index: index,
+                    onSubmitted_col: widget.onSubmitted_col,
+                    onChanged_col: (value) {
+                      //TODO: Add alarm informing that column's keys must have different names!
+                      //TODO:  note that is due to the standard used in the widget that the saved row must map a key with a value.
+                      //TODO: !!! if the original key as two identical values, the widget breaks when saving...
+                      ///checks if column has been edited previously
+                      var result = editedHeader.indexWhere((element) {
+                        return element['index'] != index ? false : true;
+                      });
+
+                      ///adds a new edited data to a temporary holder
+                      var temp;
+                      if (result != -1) {
+                        temp = editedHeader[result]['key']; //case where the key matches the title
+                        editedHeader[result]['title'] = value;
+                        editedHeader[result]['key'] = value; //case where the key matches the title
+                      } else {
+                        temp = {};
+                        temp['index'] = index;
+                        temp['title'] = value;
+                        temp['key'] = value; //case where the key matches the title
+                        //temp['key'] = columns[index]['index'];//case where the key matches the index
+                        // Getting original key
+                        temp["origKey"] = columns[index]['key']; //case where the key matches the title//original key for easy mapping
+                        editedHeader.add(temp);
+                        temp = temp["origKey"]; //case where the key matches the title//necessary to change edited rows
+                      }
+                      //case where the key matches the title
+                      if (editedRows.isNotEmpty) {
+                        editedRows.forEach((e) {
+                          if (e.keys.contains(temp)) {
+                            var tempValue = e[temp];
+                            e.remove(temp);
+                            e[value] = tempValue;
+                          }
+                        });
+                      }//End of case where the key matches the title
+                    },
+                  )
+                : THeader(
+                    widthRatio: columns[index]['widthFactor'] != null
+                        ? columns[index]['widthFactor'].toDouble()
+                        : widget.columnRatio,
+                    thPaddingLeft: widget.thPaddingLeft,
+                    thPaddingTop: widget.thPaddingTop,
+                    thPaddingBottom: widget.thPaddingBottom,
+                    thPaddingRight: widget.thPaddingRight,
+                    headers: columns,
+                    thWeight: widget.thWeight,
+                    thSize: widget.thSize,
+                    index: index,
+                  );
       });
     }
 
@@ -337,7 +427,8 @@ class EditableState extends State<Editable> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: List.generate(columnCount + 1, (rowIndex) {
-            var ckeys = [];
+            var ckeys =
+                []; //TODO: change code to identify the respective column without need to copy the array of keys
             var cwidths = [];
             columns.forEach((e) {
               ckeys.add(e['key']);
@@ -370,15 +461,56 @@ class EditableState extends State<Editable> {
                         return element['row'] != index ? false : true;
                       });
 
-                      ///adds a new edited data to a temporary holder
-                      if (result != -1) {
-                        editedRows[result][ckeys[rowIndex]] = value;
+                      ///checks if header has been edited previously
+                      //case where the key matches the title
+                      if (widget.editableColumnNames) {
+                        ///checks if that column was a previously edited
+                        var result_2 = editedHeader.indexWhere(
+                            (element) => element['index'] == rowIndex);
+
+                        ///gets new edited columns key
+                        var tempColumnName;
+                        var tempOrigColumnName;
+                        if (result_2 != -1) {
+                          tempColumnName = editedHeader[result_2]['key'];
+                          tempOrigColumnName = editedHeader[result_2]['origKey'];
+                        } else {
+                          tempColumnName = columns[rowIndex]['key'];
+                        }
+
+                        ///adds a new edited data to a temporary holder
+                        if (result != -1) {
+                          //if there's the previous column name, removes it.
+                          if (tempOrigColumnName != null) {
+                            editedRows[result].remove(tempColumnName);
+                          }
+                          editedRows[result][tempColumnName] = value;
+                        } else {
+                          var temp = {};
+                          temp['row'] = index;
+                          temp[tempColumnName] = value;
+                          editedRows.add(temp);
+                        }
                       } else {
-                        var temp = {};
-                        temp['row'] = index;
-                        temp[ckeys[rowIndex]] = value;
-                        editedRows.add(temp);
-                      }
+                        ///adds a new edited data to a temporary holder
+                        if (result != -1) {
+                          editedRows[result][ckeys[rowIndex]] = value;
+                        } else {
+                          var temp = {};
+                          temp['row'] = index;
+                          temp[ckeys[rowIndex]] = value;
+                          editedRows.add(temp);
+                        }
+                      } // End of case where the key matches the title
+                      ///adds a new edited data to a temporary holder
+                      /*if (result != -1) {
+                      editedRows[result][ckeys[rowIndex]] = value;
+                      } else {
+                      var temp = {};
+                      temp['row'] = index;
+                      temp[ckeys[rowIndex]] = value;
+                      editedRows.add(temp);
+                      }*/
                     },
                   );
           }),
@@ -396,6 +528,7 @@ class EditableState extends State<Editable> {
               Column(crossAxisAlignment: widget.createButtonAlign, children: [
             //Table Header
             createButton(),
+
             Container(
               padding: EdgeInsets.only(bottom: widget.thPaddingBottom),
               decoration: BoxDecoration(

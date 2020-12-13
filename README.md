@@ -73,7 +73,9 @@ To create a new table, use the `Editable()` widget class and provide the table d
       'widthFactor': 0.2 //gives 20% of screen size to the column
       ```
     
-     [key] an identifyer preferably without space and special characters
+     [key] an identifier preferably without space and special characters
+
+     !`Note`! that column titles must be different.
 
 - `rows`: an array of objects, where each object key represents a column [key],
   example:
@@ -83,7 +85,7 @@ To create a new table, use the `Editable()` widget class and provide the table d
         {"date":'12/4/2020',"month":'March',"name": 'Daniel Paul', "status":'new'},
       ];
     ```
-  Each objects *DO NOT* have to be positioned in same order as its column
+  Each objects *DO NOT* have to be positioned in same order as its column. But note that all columns should be given a values in the array.
  
 - `rowCount`: Interger value of number of rows to be generated: Optional if row data is provided
 - `columnCount`: Interger value of number of columns to be generated: Optional if column data is provided 
@@ -94,10 +96,10 @@ To create a new table, use the `Editable()` widget class and provide the table d
   ```
 
 ### Customization
-  - `borderColor`:  Color of table border
-  - `borderWidth`: width of table borders  
-  - `tdPaddingLeft`:  Table data cell padding left 
-  - `tdPaddingTop`: Table data cell padding top
+  - `borderColor`:  Color of table border;
+  - `borderWidth`: width of table borders;
+  - `tdPaddingLeft`:  Table data cell padding left;
+  - `tdPaddingTop`: Table data cell padding top;
   - `tdPaddingRight`:  Table data cell padding right;
   - `tdPaddingBottom`: Table data cell padding bottom;
   - `tdAlignment`: Aligns the table data ;
@@ -133,8 +135,11 @@ To create a new table, use the `Editable()` widget class and provide the table d
         )
         ```
   - `createButtonLabel`:  Label for the create new row button
+
  
 ### Save methods
+
+!`Note`! that these methods must be submitted to create the widget with the respective functionality.
 
 - `onSubmitted`:  [onSubmitted] callback is triggered when the enter button is tapped (for desktop users)
      Or when edit is complete(on mobile) on a table data cell
@@ -200,6 +205,21 @@ To create a new table, use the `Editable()` widget class and provide the table d
       }
 
   ```
+
+### Create Table with editable column names:
+
+To create a table with editable column names, you need to add
+```dart
+`editableColumnNames` : true
+```
+and the following methods
+- `onSubmitted_col` : callback triggered when the enter button is tapped (for desktop users)
+                          Or when edit is complete(on mobile) on a table column cell
+                          it returns a value of the edited column
+- `onColumnSaved` : callback is triggered when a [saveButton] is pressed.
+                       returns only values if a column is edited, otherwise returns a string ['no edit']
+
+
 # Screenshots
 ### Editable Table with Data (zebraStripe)
 ![Editable Table with Data](https://user-images.githubusercontent.com/41484542/96218374-85cb8100-0f7c-11eb-9bd3-f3154073d747.png)
@@ -234,9 +254,10 @@ Here is a quick list of things to remember
 * If you have any new idea that aligns with the goal of this library,
   feel free to raise a feature request and discuss it.
 
-# Author
+# Original Package information
 
-This Editable table package for Flutter is developed by [Godwin Asuquo](https://github.com/godilite)
+This package is a fork from the original Editable table package for Flutter developed by [Godwin Asuquo](https://github.com/godilite).
+It allows the possibility to have also editable column names.
 
 Also, as always, please give us a star to help!
 

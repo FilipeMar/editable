@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 columnBlueprint(columnCount, columns) {
   var data = List.generate(
       columnCount, (index) => {'title': '', 'index': index, 'key': index});
-  columns = [...data];
-  return columns;
+  //columns = [...data];
+  //return columns;
+  return data;
 }
 
 /// Generates empty rows from rowCount values provided
